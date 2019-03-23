@@ -119,20 +119,24 @@ with mss.mss() as sct:
                 if old_p1[0] < p1[0]:
                     keyboard.press_key('d')
                     print("right")
+                    time.sleep(0.2)
                     keyboard.release_key('d')
                 if old_p1[0] > p1[0]:
                     keyboard.press_key('a')
                     print("left")
+                    time.sleep(0.2)
                     keyboard.release_key('a')
             # Neu p2 giam thi cui xuong, p2 tang thi len
             if p1[1] > old_p1[1]+10 or p1[1] < old_p1[1]-10:
                 if old_p1[1] < p1[1]:
                     keyboard.press_key('f')
                     print("down")
+                    time.sleep(0.2)
                     keyboard.release_key('f')
                 if old_p1[1] > p1[1]:
                     keyboard.press_key('r')
                     print("up")
+                    time.sleep(0.2)
                     keyboard.release_key('r')
             old_p1 = p1
 
