@@ -4,7 +4,9 @@ import cv2
 import mss
 import numpy
 import time
+from pykeyboard import PyKeyboard
 from random import randint
+from PIL import Image
 
 trackerTypes = ['BOOSTING', 'MIL', 'KCF', 'TLD',
                 'MEDIANFLOW', 'GOTURN', 'MOSSE', 'CSRT']
@@ -39,6 +41,7 @@ def createTrackerByName(trackerType):
 
 bboxes = []
 colors = []
+first_image = 0
 
 with mss.mss() as sct:
     monitor = {"top": 0, "left": 0, "width": 500, "height": 500}
@@ -46,6 +49,7 @@ with mss.mss() as sct:
     # So we will call this function in a loop till we are done selecting all objects
     while "Screen capturing":
         img = numpy.array(sct.grab(monitor))
+        first_image = sct.grab(monitor)
         frame = img[:, :, :-1]
         # draw bounding boxes over objects
         # selectROI's default behaviour is to draw box starting from the center
@@ -67,11 +71,21 @@ trackerType = "CSRT"
 # Create MultiTracker object
 multiTracker = cv2.MultiTracker_create()
 
+roi = 0
+global_bbox = 0
 # Initialize MultiTracker
 for bbox in bboxes:
     multiTracker.add(createTrackerByName(trackerType), frame, bbox)
+    current_img = numpy.array(first_image)
+    global_bbox = bbox
+    roi = current_img[bbox[1]:bbox[1]+bbox[3], bbox[0]:bbox[0]+bbox[2]]
+
+hsv_roi = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
+roi_hist = cv2.calcHist([hsv_roi], [0], None, [180], [0, 180])
+term_criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 1)
 
 old_p1 = (0,0)
+keyboard = PyKeyboard()
 
 with mss.mss() as sct:
     # Part of the screen to capture
@@ -84,6 +98,13 @@ with mss.mss() as sct:
         # Process video and track objects
         frame = img[:, :, :-1]
 
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        mask = cv2.calcBackProject([hsv], [0], roi_hist, [0, 180], 1)
+        ret, track_window = cv2.CamShift(mask, global_bbox, term_criteria)
+
+        pts = cv2.boxPoints(ret)
+        pts = numpy.int0(pts)
+
         # get updated location of objects in subsequent frames
         success, boxes = multiTracker.update(frame)
 
@@ -94,15 +115,23 @@ with mss.mss() as sct:
             # Neu p1 giam thi sang trai, p1 tang thi sang phai
             if p1[0] > old_p1[0]+10 or p1[0] < old_p1[0]-10:
                 if old_p1[0] < p1[0]:
+                    keyboard.press_key('d')
                     print("right")
+                    keyboard.release_key('d')
                 if old_p1[0] > p1[0]:
+                    keyboard.press_key('a')
                     print("left")
+                    keyboard.release_key('a')
             # Neu p2 giam thi cui xuong, p2 tang thi len
             if p1[1] > old_p1[1]+10 or p1[1] < old_p1[1]-10:
                 if old_p1[1] < p1[1]:
+                    keyboard.press_key('f')
                     print("down")
+                    keyboard.release_key('f')
                 if old_p1[1] > p1[1]:
+                    keyboard.press_key('r')
                     print("up")
+                    keyboard.release_key('r')
             old_p1 = p1
 
         # show frame
