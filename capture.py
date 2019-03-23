@@ -25,6 +25,6 @@ with mss.mss() as sct:
         print("fps: {}".format(1 / (time.time() - last_time)))
 
         # Press "q" to quit
-        if cv2.waitKey(25) & 0xFF == ord("q"):
+        if cv2.waitKey(250000) & 0xFF == ord("q"):
             cv2.destroyAllWindows()
             break
