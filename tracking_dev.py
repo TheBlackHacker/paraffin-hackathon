@@ -85,6 +85,8 @@ roi_hist = cv2.calcHist([hsv_roi], [0], None, [180], [0, 180])
 term_criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 1)
 
 old_p1 = (0,0)
+old_dt = 0
+
 keyboard = PyKeyboard()
 
 with mss.mss() as sct:
@@ -111,7 +113,7 @@ with mss.mss() as sct:
         # draw tracked objects
         for i, newbox in enumerate(boxes):
             p1 = (int(newbox[0]), int(newbox[1]))
-            # p2 = (int(newbox[0] + newbox[2]), int(newbox[1] + newbox[3]))
+            p2 = (int(newbox[2]), int(newbox[3]))
             # Neu p1 giam thi sang trai, p1 tang thi sang phai
             if p1[0] > old_p1[0]+10 or p1[0] < old_p1[0]-10:
                 if old_p1[0] < p1[0]:
@@ -133,6 +135,22 @@ with mss.mss() as sct:
                     print("up")
                     keyboard.release_key('r')
             old_p1 = p1
+
+            dt = p2[0] * p2[1]
+            
+            if old_dt <> 0 :
+                if dt < old_dt - 200 :
+                    keyboard.press_key('w')
+                    print("forward")
+                    time.sleep(0.2)
+                    keyboard.release_key('w')
+                if dt > old_dt + 200 :
+                    keyboard.press_key('s')
+                    print("backward")
+                    time.sleep(0.2)
+                    keyboard.release_key('s')
+                
+            old_dt = dt
 
         # show frame
         cv2.imshow('MultiTracker', frame)
